@@ -110,5 +110,5 @@ export function randomCode(prefix) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let s = ''; const a = new Uint32Array(6); crypto.getRandomValues(a);
   a.forEach(n => { s += chars[n % chars.length]; });
-  return (prefix ? prefix.toUpperCase().replace(/[^A-Z0-9]/g, '') + '-' : '') + s;
+  return (prefix ? prefix.toUpperCase().replace(/[^A-Z0-9-]/g, '') + '-' : '') + s;
 }
