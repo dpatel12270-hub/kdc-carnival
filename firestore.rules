@@ -1,0 +1,51 @@
+rules_version = '2';
+// KDC Carnival (Roanoke) security rules.
+// Volunteers sign in anonymously, then type an access code. The code's roles are copied
+// into sessions/{uid}, and every rule below checks that session and that the code is still On.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function sessPath() { return /databases/$(database)/documents/sessions/$(request.auth.uid); }
+    function sess() { return get(sessPath()).data; }
+    function codePath(code) { return /databases/$(database)/documents/accessCodes/$(code); }
+    function codeOn(code) { return exists(codePath(code)) && get(codePath(code)).data.get('active', true) == true; }
+    function me() { return signedIn() && exists(sessPath()) && codeOn(sess().code); }
+    function role(r) { return me() && r in sess().roles; }
+    function admin() { return role('MANDIR_ADMIN_USER') || role('SUPER_ADMIN_USER'); }
+    function gameAdmin() { return admin() || role('GAME_ADMIN_USER'); }
+    function canEditKids() {
+      return admin() || role('APP_USER') || role('PRIZE_ADMIN_USER') || role('GIFT_ADMIN_USER') || role('CHECKIN_USER');
+    }
+
+    // Anyone signed in may look up ONE code by its exact value (that is the login).
+    // Only admins can list, create, change or delete codes.
+    match /accessCodes/{code} {
+      allow get: if signedIn();
+      allow list: if admin();
+      allow create, update: if admin() && request.resource.data.code == code && code.size() >= 8
+        && !('SUPER_ADMIN_USER' in request.resource.data.roles);
+      allow delete: if admin();
+    }
+
+    // A device's login. Its roles must match the access code exactly.
+    match /sessions/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == uid
+        && codeOn(request.resource.data.code)
+        && request.resource.data.roles == get(codePath(request.resource.data.code)).data.roles;
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /games/{id}       { allow read: if me(); allow write: if gameAdmin(); }
+    match /prizes/{side}    { allow read: if me(); allow write: if gameAdmin(); }
+    match /configs/{id}     { allow read: if me(); allow write: if gameAdmin(); }
+    match /backgrounds/{id} { allow read: if me(); allow write: if gameAdmin(); }
+
+    match /participants/{id} {
+      allow read: if me();
+      allow create, update: if canEditKids();
+      allow delete: if admin();
+    }
+  }
+}
