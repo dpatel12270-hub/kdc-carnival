@@ -7,17 +7,14 @@
 //    is saved only in this browser, so you can click around safely.
 // ============================================================
 
-export const FIREBASE_CONFIG = null;
-/* Example:
 export const FIREBASE_CONFIG = {
-  apiKey: "AIza...",
-  authDomain: "kdc-carnival.firebaseapp.com",
-  projectId: "kdc-carnival",
-  storageBucket: "kdc-carnival.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abc123"
+  apiKey: "AIzaSyDSN66yMOstmEE0ppQW2-WbDvg5MU0bdlA",
+  authDomain: "kdc-app-2873c.firebaseapp.com",
+  projectId: "kdc-app-2873c",
+  storageBucket: "kdc-app-2873c.firebasestorage.app",
+  messagingSenderId: "898671599076",
+  appId: "1:898671599076:web:e0f065dcca901acbdcfbf1"
 };
-*/
 
 // This app is only for the Roanoke center.
 export const CENTER = 'ROK';
